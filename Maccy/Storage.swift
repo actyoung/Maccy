@@ -1,35 +1,24 @@
-import Foundation
-import SwiftData
-
 @MainActor
 class Storage {
   static let shared = Storage()
 
-  var container: ModelContainer
-  var context: ModelContext { container.mainContext }
-  var size: String {
-    guard let size = try? url.resourceValues(forKeys: [.fileSizeKey]).allValues.first?.value as? Int64, size > 1 else {
-      return ""
-    }
+  private(set) var items: [HistoryItem] = []
+  var size: String { "Memory only" }
 
-    return ByteCountFormatter().string(fromByteCount: size)
+  func insert(_ item: HistoryItem) {
+    guard !items.contains(item) else { return }
+    items.append(item)
   }
 
-  private let url = URL.applicationSupportDirectory.appending(path: "Maccy/Storage.sqlite")
+  func delete(_ item: HistoryItem) {
+    items.removeAll { $0 == item }
+  }
 
-  init() {
-    var config = ModelConfiguration(url: url)
+  func removeAll(where shouldRemove: (HistoryItem) -> Bool) {
+    items.removeAll(where: shouldRemove)
+  }
 
-    #if DEBUG
-    if CommandLine.arguments.contains("enable-testing") {
-      config = ModelConfiguration(isStoredInMemoryOnly: true)
-    }
-    #endif
-
-    do {
-      container = try ModelContainer(for: HistoryItem.self, configurations: config)
-    } catch let error {
-      fatalError("Cannot load database: \(error.localizedDescription).")
-    }
+  func removeAll() {
+    items.removeAll()
   }
 }

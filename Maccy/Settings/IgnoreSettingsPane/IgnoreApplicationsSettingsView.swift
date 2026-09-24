@@ -79,7 +79,9 @@ struct IgnoreApplicationsSettingsView: View {
   }
 }
 
+#if DEBUG
 #Preview {
   IgnoreApplicationsSettingsView()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif

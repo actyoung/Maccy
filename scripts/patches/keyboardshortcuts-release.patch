@@ -1,0 +1,6 @@
+--- a/Sources/KeyboardShortcuts/Recorder.swift
++++ b/Sources/KeyboardShortcuts/Recorder.swift
+@@ -169,0 +170 @@
++#if DEBUG
+@@ -184,0 +186 @@
++#endif

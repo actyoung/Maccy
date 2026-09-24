@@ -66,7 +66,9 @@ struct IgnorePasteboardTypesSettingsView: View {
   }
 }
 
+#if DEBUG
 #Preview {
   IgnorePasteboardTypesSettingsView()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif

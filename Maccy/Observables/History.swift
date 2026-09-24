@@ -6,7 +6,6 @@ import Logging
 import Observation
 import Sauce
 import Settings
-import SwiftData
 
 @Observable
 class History: ItemsContainer { // swiftlint:disable:this type_body_length
@@ -62,7 +61,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
   // The distinction between `all` and `items` is the following:
   // - `all` stores all history items, even the ones that are currently hidden by a search
   // - `items` stores only visible history items, updated during a search
-  @ObservationIgnored
   var all: [HistoryItemDecorator] = []
 
   init() {
@@ -103,9 +101,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
 
   @MainActor
   func load() async throws {
-    let descriptor = FetchDescriptor<HistoryItem>()
-    let results = try Storage.shared.context.fetch(descriptor)
-    all = sorter.sort(results).map { HistoryItemDecorator($0) }
+    all = sorter.sort(Storage.shared.items).map { HistoryItemDecorator($0) }
     items = all
 
     limitHistorySize(to: Defaults[.size])
@@ -127,21 +123,14 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
 
   @MainActor
   func insertIntoStorage(_ item: HistoryItem) throws {
-    logger.info("Inserting item with id '\(item.title)'")
-    Storage.shared.context.insert(item)
-    Storage.shared.context.processPendingChanges()
-    try? Storage.shared.context.save()
+    logger.info("Inserting clipboard item")
+    Storage.shared.insert(item)
   }
 
   @discardableResult
   @MainActor
   func add(_ item: HistoryItem) -> HistoryItemDecorator {
-    if #available(macOS 15.0, *) {
-      try? History.shared.insertIntoStorage(item)
-    } else {
-      // On macOS 14 the history item needs to be inserted into storage directly after creating it.
-      // It was already inserted after creation in Clipboard.swift
-    }
+    try? History.shared.insertIntoStorage(item)
 
     var removedItemIndex: Int?
     if let existingHistoryItem = findSimilarItem(item) {
@@ -155,12 +144,12 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       if !item.fromMaccy {
         item.application = existingHistoryItem.application
       }
-      logger.info("Removing duplicate item '\(item.title)'")
+      logger.info("Removing duplicate clipboard item")
       removedItemIndex = all.firstIndex(where: { $0.item == existingHistoryItem })
       if let removedItemIndex {
         cleanup(all[removedItemIndex])
       }
-      Storage.shared.context.delete(existingHistoryItem)
+      Storage.shared.delete(existingHistoryItem)
       if let removedItemIndex {
         all.remove(at: removedItemIndex)
       }
@@ -203,9 +192,9 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
   @MainActor
   private func withLogging(_ msg: String, _ block: () throws -> Void) rethrows {
     func dataCounts() -> String {
-      let historyItemCount = try? Storage.shared.context.fetchCount(FetchDescriptor<HistoryItem>())
-      let historyContentCount = try? Storage.shared.context.fetchCount(FetchDescriptor<HistoryItemContent>())
-      return "HistoryItem=\(historyItemCount ?? 0) HistoryItemContent=\(historyContentCount ?? 0)"
+      let historyItemCount = Storage.shared.items.count
+      let historyContentCount = Storage.shared.items.reduce(0) { $0 + $1.contents.count }
+      return "HistoryItem=\(historyItemCount) HistoryItemContent=\(historyContentCount)"
     }
 
     logger.info("\(msg) Before: \(dataCounts())")
@@ -225,18 +214,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       sessionLog.removeValues { $0.pin == nil }
       items = all
 
-      try? Storage.shared.context.transaction {
-        try? Storage.shared.context.delete(
-          model: HistoryItem.self,
-          where: #Predicate { $0.pin == nil }
-        )
-        try? Storage.shared.context.delete(
-          model: HistoryItemContent.self,
-          where: #Predicate { $0.item?.pin == nil }
-        )
-      }
-      Storage.shared.context.processPendingChanges()
-      try? Storage.shared.context.save()
+      Storage.shared.removeAll { $0.pin == nil }
     }
 
     Clipboard.shared.clear()
@@ -256,9 +234,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       sessionLog.removeAll()
       items = all
 
-      try? Storage.shared.context.delete(model: HistoryItem.self)
-      Storage.shared.context.processPendingChanges()
-      try? Storage.shared.context.save()
+      Storage.shared.removeAll()
     }
 
     Clipboard.shared.clear()
@@ -274,9 +250,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
 
     cleanup(item)
     withLogging("Removing history item") {
-      Storage.shared.context.delete(item.item)
-      Storage.shared.context.processPendingChanges()
-      try? Storage.shared.context.save()
+      Storage.shared.delete(item.item)
     }
 
     all.removeAll { $0 == item }
@@ -339,7 +313,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     pasteStack = stack
 
     logger.info("Initialising PasteStack with \(stack.items.count) items")
-    logger.info("Copying \(item.item.title) from PasteStack")
+    logger.info("Copying item from PasteStack")
 
     if modifierFlags.isEmpty {
       AppState.shared.popup.close()
@@ -377,7 +351,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       return
     }
 
-    logger.info("PasteStack pasted \(pasted.item.title)")
+    logger.info("PasteStack pasted an item")
 
     stack.items.removeFirst()
 
@@ -387,7 +361,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       return
     }
 
-    logger.info("Copying \(item.item.title) from PasteStack. \(stack.items.count) items remaining in stack.")
+    logger.info("Copying item from PasteStack. \(stack.items.count) items remaining in stack.")
 
     Task {
       if stack.modifierFlags.isEmpty {

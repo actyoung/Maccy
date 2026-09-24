@@ -5,17 +5,11 @@ import LaunchAtLogin
 import Settings
 
 struct GeneralSettingsPane: View {
-  private let notificationsURL = URL(
-    string: "x-apple.systempreferences:com.apple.preference.notifications?id=\(Bundle.main.bundleIdentifier ?? "")"
-  )
-
   @Default(.searchMode) private var searchMode
 
   @State private var copyModifier = HistoryItemAction.copy.modifierFlags.description
   @State private var pasteModifier = HistoryItemAction.paste.modifierFlags.description
   @State private var pasteWithoutFormatting = HistoryItemAction.pasteWithoutFormatting.modifierFlags.description
-
-  @State private var updater = SoftwareUpdater()
 
   var body: some View {
     Settings.Container(contentWidth: 450) {
@@ -23,13 +17,6 @@ struct GeneralSettingsPane: View {
         LaunchAtLogin.Toggle {
           Text("LaunchAtLogin", tableName: "GeneralSettings")
         }
-        Toggle(isOn: $updater.automaticallyChecksForUpdates) {
-          Text("CheckForUpdates", tableName: "GeneralSettings")
-        }
-        Button(
-          action: { updater.checkForUpdates() },
-          label: { Text("CheckNow", tableName: "GeneralSettings") }
-        )
       }
 
       Settings.Section(label: { Text("Open", tableName: "GeneralSettings") }) {
@@ -99,14 +86,6 @@ struct GeneralSettingsPane: View {
         .foregroundStyle(.gray)
         .controlSize(.small)
       }
-
-      Settings.Section(title: "") {
-        if let notificationsURL = notificationsURL {
-          Link(destination: notificationsURL, label: {
-            Text("NotificationsAndSounds", tableName: "GeneralSettings")
-          })
-        }
-      }
     }
   }
 
@@ -117,7 +96,9 @@ struct GeneralSettingsPane: View {
   }
 }
 
+#if DEBUG
 #Preview {
   GeneralSettingsPane()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif

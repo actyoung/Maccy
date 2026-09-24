@@ -1,4 +1,3 @@
-import SwiftData
 import SwiftUI
 
 struct PinPickerView: View {
@@ -113,13 +112,16 @@ struct PinValueView: View {
 
 struct PinsSettingsPane: View {
   @Environment(AppState.self) private var appState
-  @Environment(\.modelContext) private var modelContext
-
-  @Query(filter: #Predicate<HistoryItem> { $0.pin != nil }, sort: \.firstCopiedAt)
-  private var items: [HistoryItem]
 
   @State private var availablePins: [String] = []
-  @State private var selection: PersistentIdentifier?
+  @State private var selection: UUID?
+
+  private var items: [HistoryItem] {
+    appState.history.all
+      .filter(\.isPinned)
+      .map(\.item)
+      .sorted { $0.firstCopiedAt < $1.firstCopiedAt }
+  }
 
   var body: some View {
     VStack(alignment: .leading) {
@@ -161,8 +163,9 @@ struct PinsSettingsPane: View {
   }
 }
 
+#if DEBUG
 #Preview {
   return PinsSettingsPane()
     .environment(\.locale, .init(identifier: "en"))
-    .modelContainer(Storage.shared.container)
 }
+#endif

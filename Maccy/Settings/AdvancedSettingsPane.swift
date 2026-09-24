@@ -43,7 +43,9 @@ struct AdvancedSettingsPane: View {
   }
 }
 
+#if DEBUG
 #Preview {
   AdvancedSettingsPane()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif

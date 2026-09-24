@@ -234,7 +234,9 @@ struct AppearanceSettingsPane: View {
   }
 }
 
+#if DEBUG
 #Preview {
   AppearanceSettingsPane()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif

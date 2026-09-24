@@ -21,7 +21,9 @@ struct IgnoreSettingsPane: View {
   }
 }
 
+#if DEBUG
 #Preview {
   IgnoreSettingsPane()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif

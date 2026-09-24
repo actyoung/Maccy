@@ -1,0 +1,15 @@
+--- a/Package.swift
++++ b/Package.swift
+@@ -21,3 +21 @@
+-			resources: [
+-				.process("Resources")
+-			]
++			exclude: ["Resources"]
+--- a/Sources/Settings/SettingsTabViewController.swift
++++ b/Sources/Settings/SettingsTabViewController.swift
+@@ -98 +98 @@
+-					settings = NSLocalizedString("settings", bundle: .module, comment: "Settings")
++					settings = "Settings"
+@@ -100 +100 @@
+-					settings = NSLocalizedString("preferences", bundle: .module, comment: "Preferences")
++					settings = "Preferences"

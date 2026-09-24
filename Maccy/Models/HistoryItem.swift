@@ -1,11 +1,17 @@
 import AppKit
 import Defaults
+import Observation
 import Sauce
-import SwiftData
 import Vision
 
-@Model
-class HistoryItem {
+@Observable
+final class HistoryItem: Identifiable, Equatable {
+  static func == (lhs: HistoryItem, rhs: HistoryItem) -> Bool {
+    lhs === rhs
+  }
+
+  let id = UUID()
+
   static var supportedPins: Set<String> {
     // "a" reserved for select all
     // "q" reserved for quit
@@ -71,14 +77,11 @@ class HistoryItem {
   var pin: String?
   var title = ""
 
-  @Relationship(deleteRule: .cascade, inverse: \HistoryItemContent.item)
   var contents: [HistoryItemContent] = []
 
-  @Transient private var cachedDecodedImage: NSImage?
+  @ObservationIgnored private var cachedDecodedImage: NSImage?
 
   init(contents: [HistoryItemContent] = []) {
-    self.firstCopiedAt = firstCopiedAt
-    self.lastCopiedAt = lastCopiedAt
     self.contents = contents
   }
 

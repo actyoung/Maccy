@@ -123,7 +123,9 @@ struct StorageSettingsPane: View {
   }
 }
 
+#if DEBUG
 #Preview {
   StorageSettingsPane()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif

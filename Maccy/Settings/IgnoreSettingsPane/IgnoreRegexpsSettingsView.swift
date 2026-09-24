@@ -51,7 +51,9 @@ struct IgnoreRegexpsSettingsView: View {
   }
 }
 
+#if DEBUG
 #Preview {
   IgnoreRegexpsSettingsView()
     .environment(\.locale, .init(identifier: "en"))
 }
+#endif
