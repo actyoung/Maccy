@@ -5,7 +5,7 @@ import Observation
 import Sauce
 
 @Observable
-class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
+final class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
   static func == (lhs: HistoryItemDecorator, rhs: HistoryItemDecorator) -> Bool {
     return lhs.id == rhs.id
   }
@@ -190,8 +190,9 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
   private func synchronizeItemPin() {
     _ = withObservationTracking {
       item.pin
-    } onChange: {
-      DispatchQueue.main.async {
+    } onChange: { [weak self] in
+      Task { @MainActor [weak self] in
+        guard let self else { return }
         if let pin = self.item.pin {
           self.shortcuts = KeyShortcut.create(character: pin)
         }
@@ -203,8 +204,9 @@ class HistoryItemDecorator: Identifiable, Hashable, HasVisibility {
   private func synchronizeItemTitle() {
     _ = withObservationTracking {
       item.title
-    } onChange: {
-      DispatchQueue.main.async {
+    } onChange: { [weak self] in
+      Task { @MainActor [weak self] in
+        guard let self else { return }
         self.title = self.item.title
         self.synchronizeItemTitle()
       }

@@ -344,7 +344,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
       return
     }
 
-    guard let pasted = stack.items.first else {
+    guard !stack.items.isEmpty else {
       pasteStack = nil
       logger.info("PasteStack is empty")
       return

@@ -92,3 +92,4 @@ fetch_dependency swifthexcolors thii SwiftHEXColors \
 
 apply_compatibility_patch settings "$script_dir/patches/settings-command-line-tools.patch"
 apply_compatibility_patch keyboardshortcuts "$script_dir/patches/keyboardshortcuts-release.patch"
+apply_compatibility_patch defaults "$script_dir/patches/defaults-swift-6-sendable.patch"

@@ -1,0 +1,5 @@
+--- a/Sources/Defaults/Defaults.swift
++++ b/Sources/Defaults/Defaults.swift
+@@ -90 +90 @@
+-	public final class Key<Value: Serializable>: _AnyKey {
++	public final class Key<Value: Serializable>: _AnyKey, @unchecked Sendable {

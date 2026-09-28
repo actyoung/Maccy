@@ -2,7 +2,7 @@ import Defaults
 import KeyboardShortcuts
 import SwiftUI
 
-class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate {
   var panel: FloatingPanel<ContentView>!
   private var historyRetentionTask: Task<Void, Never>?
 
@@ -182,8 +182,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   private func synchronizeMenuIconText() {
     _ = withObservationTracking {
       AppState.shared.menuIconText
-    } onChange: {
-      DispatchQueue.main.async {
+    } onChange: { [weak self] in
+      Task { @MainActor [weak self] in
+        guard let self else { return }
         if Defaults[.showRecentCopyInMenuBar] {
           self.statusItem.button?.title = AppState.shared.menuIconText
         }
