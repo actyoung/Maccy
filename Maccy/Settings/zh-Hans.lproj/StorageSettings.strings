@@ -12,3 +12,13 @@
 "FirstCopiedAt" = "首次复制时间";
 "NumberOfCopies" = "复制次数";
 "SortByTooltip" = "默认：上次复制时间。";
+"EncryptedHistory" = "加密历史：";
+"EncryptedHistoryEnabled" = "在这台 Mac 上保留历史";
+"EncryptedHistoryDescription" = "内容写入磁盘前会先加密。关闭此开关只会暂停磁盘写入，已有密文和钥匙串密钥会保留，重新开启后继续使用。";
+"Days" = "天";
+"DeleteEncryptedHistory" = "删除加密历史和密钥";
+"DeleteEncryptedHistoryConfirmation" = "删除全部加密历史及其加密密钥？";
+"DeleteEncryptedHistoryWarning" = "此操作无法撤销。当前仍在内存中的历史会保留到 Maccy 退出为止。";
+"EncryptedHistoryError" = "加密历史错误";
+"Cancel" = "取消";
+"OK" = "好";

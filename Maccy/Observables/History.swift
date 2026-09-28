@@ -130,8 +130,6 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
   @discardableResult
   @MainActor
   func add(_ item: HistoryItem) -> HistoryItemDecorator {
-    try? History.shared.insertIntoStorage(item)
-
     var removedItemIndex: Int?
     if let existingHistoryItem = findSimilarItem(item) {
       if isModified(item) == nil {
@@ -163,6 +161,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     // if a duplicate was found as then the size already stayed the same.
     limitHistorySize(to: Defaults[.size] - 1)
 
+    try? History.shared.insertIntoStorage(item)
     sessionLog[Clipboard.shared.changeCount] = item
 
     var itemDecorator: HistoryItemDecorator
@@ -394,6 +393,7 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
     guard let item else { return }
 
     item.togglePin()
+    Storage.shared.update(item.item)
 
     let sortedItems = sorter.sort(all.map(\.item))
     if let currentIndex = all.firstIndex(of: item),
@@ -413,8 +413,8 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
 
   @MainActor
   private func findSimilarItem(_ item: HistoryItem) -> HistoryItem? {
-    if let duplicate = all.first(where: { $0.item != item && $0.item.supersedes(item) }) {
-      return duplicate.item
+    if let duplicate = Storage.shared.items.first(where: { $0 != item && $0.supersedes(item) }) {
+      return duplicate
     }
 
     return isModified(item)
@@ -453,6 +453,21 @@ class History: ItemsContainer { // swiftlint:disable:this type_body_length
   private func updateTitle(item: HistoryItemDecorator, title: String) {
     item.title = title
     item.item.title = title
+    Storage.shared.update(item.item)
+  }
+
+  @MainActor
+  func pruneExpired(now: Date = .now) {
+    let expiredIDs = Storage.shared.pruneExpired(now: now)
+    guard !expiredIDs.isEmpty else { return }
+
+    let expiredItems = all.filter { expiredIDs.contains($0.item.id) }
+    expiredItems.forEach(cleanup)
+    all.removeAll { expiredIDs.contains($0.item.id) }
+    items.removeAll { expiredIDs.contains($0.item.id) }
+    sessionLog.removeValues { expiredIDs.contains($0.id) }
+    updateUnpinnedShortcuts()
+    AppState.shared.popup.needsResize = true
   }
 
   private func updateUnpinnedShortcuts() {

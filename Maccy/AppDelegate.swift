@@ -4,6 +4,7 @@ import SwiftUI
 
 class AppDelegate: NSObject, NSApplicationDelegate {
   var panel: FloatingPanel<ContentView>!
+  private var historyRetentionTask: Task<Void, Never>?
 
   @objc
   private lazy var statusItem: NSStatusItem = {
@@ -33,8 +34,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // Bridge FloatingPanel via AppDelegate.
     AppState.shared.appDelegate = self
 
+    Storage.shared.prepareForLaunch()
     Clipboard.shared.onNewCopy { History.shared.add($0) }
     Clipboard.shared.start()
+
+    historyRetentionTask = Task { @MainActor in
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(60 * 60))
+        guard !Task.isCancelled else { return }
+        History.shared.pruneExpired()
+      }
+    }
 
     Task {
       for await _ in Defaults.updates(.clipboardCheckInterval, initial: false) {
@@ -104,6 +114,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
   }
 
   func applicationWillTerminate(_ notification: Notification) {
+    historyRetentionTask?.cancel()
     if Defaults[.clearOnQuit] {
       AppState.shared.history.clear()
     }

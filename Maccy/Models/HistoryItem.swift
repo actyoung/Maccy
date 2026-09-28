@@ -10,7 +10,7 @@ final class HistoryItem: Identifiable, Equatable {
     lhs === rhs
   }
 
-  let id = UUID()
+  let id: UUID
 
   static var supportedPins: Set<String> {
     // "a" reserved for select all
@@ -81,7 +81,8 @@ final class HistoryItem: Identifiable, Equatable {
 
   @ObservationIgnored private var cachedDecodedImage: NSImage?
 
-  init(contents: [HistoryItemContent] = []) {
+  init(id: UUID = UUID(), contents: [HistoryItemContent] = []) {
+    self.id = id
     self.contents = contents
   }
 
@@ -258,5 +259,8 @@ final class HistoryItem: Identifiable, Equatable {
     }
 
     self.title = recognizedStrings.joined(separator: "\n")
+    Task { @MainActor in
+      Storage.shared.update(self)
+    }
   }
 }

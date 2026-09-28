@@ -12,3 +12,13 @@
 "FirstCopiedAt" = "Time of first copy";
 "NumberOfCopies" = "Number of copies";
 "SortByTooltip" = "Default: Time of last copy.";
+"EncryptedHistory" = "Encrypted history:";
+"EncryptedHistoryEnabled" = "Keep history on this Mac";
+"EncryptedHistoryDescription" = "Items are encrypted before being written to disk. Turning this off pauses disk writes; existing encrypted data and its Keychain key are kept for reuse.";
+"Days" = "days";
+"DeleteEncryptedHistory" = "Delete encrypted history and key";
+"DeleteEncryptedHistoryConfirmation" = "Delete all encrypted history and its encryption key?";
+"DeleteEncryptedHistoryWarning" = "This cannot be undone. The history currently held in memory will remain available until Maccy quits.";
+"EncryptedHistoryError" = "Encrypted history error";
+"Cancel" = "Cancel";
+"OK" = "OK";

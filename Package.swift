@@ -45,6 +45,14 @@ let package = Package(
         "Sounds",
         "Storage.xcdatamodeld"
       ]
+    ),
+    .testTarget(
+      name: "MaccyPersistenceTests",
+      dependencies: [
+        "Maccy",
+        .product(name: "Defaults", package: "defaults")
+      ],
+      path: "MaccyPersistenceTests"
     )
   ],
   swiftLanguageModes: [.v5]

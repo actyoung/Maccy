@@ -6,6 +6,8 @@ repo_dir=${script_dir:h}
 app_dir="$repo_dir/build/Maccy.app"
 cache_dir="$repo_dir/.swiftpm-local"
 icon_source_dir="$repo_dir/Maccy/Assets.xcassets/AppIcon.appiconset"
+bundle_identifier="org.p0deje.Maccy.localprivacy"
+designated_requirement="=designated => identifier \"$bundle_identifier\""
 
 sdk_path=${SDKROOT:-}
 if [[ -z "$sdk_path" ]]; then
@@ -49,7 +51,7 @@ cp "$repo_dir/.build/release/Maccy" "$app_dir/Contents/MacOS/Maccy"
 cp "$repo_dir/Maccy/Info.plist" "$app_dir/Contents/Info.plist"
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleExecutable Maccy" "$app_dir/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier org.p0deje.Maccy.localprivacy" "$app_dir/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $bundle_identifier" "$app_dir/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleName 'Maccy Privacy'" "$app_dir/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :CFBundleDisplayName string 'Maccy Privacy'" "$app_dir/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$app_dir/Contents/Info.plist"
@@ -84,6 +86,13 @@ for resource_bundle in "$repo_dir"/.build/release/*.bundle; do
   cp -R "$resource_bundle" "$app_dir/Contents/Resources/"
 done
 
-codesign --force --deep --sign - --entitlements "$repo_dir/Maccy/Maccy.entitlements" "$app_dir"
+codesign \
+  --force \
+  --deep \
+  --sign - \
+  --options runtime \
+  --requirements "$designated_requirement" \
+  --entitlements "$repo_dir/Maccy/Maccy.entitlements" \
+  "$app_dir"
 codesign --verify --deep --strict --verbose=2 "$app_dir"
 print "$app_dir"

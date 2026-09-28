@@ -25,6 +25,9 @@ struct PinTitleView: View {
 
   var body: some View {
     TextField("", text: $item.title)
+      .onChange(of: item.title) {
+        Storage.shared.update(item)
+      }
   }
 }
 
@@ -105,6 +108,7 @@ struct PinValueView: View {
         item.contents.append(newContent)
       }
     }
+    Storage.shared.update(item)
     // We don't automatically update title here since we want to preserve
     // OCR-extracted titles for images and other non-text content
   }
@@ -130,6 +134,7 @@ struct PinsSettingsPane: View {
           PinPickerView(item: item, availablePins: availablePins)
             .onChange(of: item.pin) {
               availablePins = HistoryItem.availablePins(in: items)
+              Storage.shared.update(item)
             }
         }
         .width(60)
